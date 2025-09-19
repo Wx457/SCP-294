@@ -5,7 +5,7 @@
       <div v-for="record in records" :key="record._id" class="record-item">
         <div class="record-header" @click="toggleDetails(record._id)">
           <span class="record-key">Key: {{ record.input_key }}</span>
-          <span class="record-timestamp">时间: {{ formatDate(record.timestamp) }}</span>
+          <span class="record-timestamp">Timestamp: {{ displayDate(record) }}</span>
         </div>
         <div v-if="expandedRecordId === record._id" class="record-details">
           <div class="paper-background">
@@ -45,9 +45,17 @@ function toggleDetails(id) {
   }
 }
 
-function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-  return new Date(dateString).toLocaleDateString('zh-CN', options);
+function extractYMDFromDoc(text = '') {
+  const m = text.match(/^\s*Timestamp:\s*(\d{4}-\d{2}-\d{2})/m)
+  return m ? m[1] : ''
+}
+
+function displayDate(rec) {
+  // 优先新字段；否则用 ISO/Mongo 字符串的前 10 位；最后从文档头抠
+  if (typeof rec.timestamp_ymd === 'string' && rec.timestamp_ymd) return rec.timestamp_ymd
+  if (typeof rec.timestamp_iso === 'string' && rec.timestamp_iso) return rec.timestamp_iso.slice(0, 10)
+  if (typeof rec.timestamp === 'string' && rec.timestamp)         return rec.timestamp.slice(0, 10)
+  return extractYMDFromDoc(rec.document_text) || '-'
 }
 
 function clickLeave() {

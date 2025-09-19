@@ -1,52 +1,50 @@
 <template>
-  <div class="break-room-viewport">
-    <div class="image-container">
-      
-      <img :src="darkBg" alt="backgroud img" class="background-image" ref="imageRef"/>
+    <div class="break-room-viewport">
+        <div class="image-container">
+        
+        <img :src="darkBg" alt="backgroud img" class="background-image" ref="imageRef"/>
 
-      <img 
-        :src="brightBg" 
-        alt="bright bgi" 
-        class="highlight-image-overlay" 
-        :style="{ clipPath: brightClipPath }"
-      />
+        <img 
+            :src="brightBg" 
+            alt="bright bgi" 
+            class="highlight-image-overlay" 
+            :style="{ clipPath: brightClipPath }"
+        />
 
-      <div 
-        class="hotspot"
-        :style="hotspotStyles.guard"
-        @click="clickGuard"
-        @mouseover="onHotspotHover('guard')"
-        @mouseleave="onHotspotLeave"
-      ></div>
+        <div 
+            class="hotspot"
+            :style="hotspotStyles.guard"
+            @click="clickGuard"
+            @mouseover="onHotspotHover('guard')"
+            @mouseleave="onHotspotLeave"
+        ></div>
 
-      <div 
-        class="hotspot"
-        :style="hotspotStyles.machine"
-        @click="clickMachine"
-        @mouseover="onHotspotHover('machine')"
-        @mouseleave="onHotspotLeave"
-      ></div>
+        <div 
+            class="hotspot"
+            :style="hotspotStyles.machine"
+            @click="clickMachine"
+            @mouseover="onHotspotHover('machine')"
+            @mouseleave="onHotspotLeave"
+        ></div>
 
+        </div>
     </div>
-  </div>
 
-  <button class="leave-button" @click="clickLeave">Leave</button>
-  <div v-if="narrativeText" class="narrative-box">
-    <p>{{ narrativeText }}</p>
-  </div>
-  <div v-if="showGuardCloseup" class="guard-closeup-overlay" @click="clickGuard">
-    <img :src="guardCloseupImg" alt="Security Img">
-  </div>
+    <button class="leave-button" @click="clickLeave">Leave</button>
+    <div v-if="narrativeText" class="narrative-box">
+        <p>{{ narrativeText }}</p>
+    </div>
+
 </template>
 
 <script setup>
     // 1) 资源导入==============================
     import { ref, onMounted, onUnmounted, computed } from 'vue'
     import { useRouter } from 'vue-router'
+    import { useMainStore } from '@/stores/mainStore';
 
     import darkBg from '../assets/BGI.png'
     import brightBg from '../assets/BGI_bright.png'
-    import guardCloseupImg from '../assets/Security.png'
 
     // 划定热点对象Hotspots-size & location
     const hotspots = {
@@ -65,22 +63,20 @@
         offsetY: 0, // 图片距离容器顶部的偏移 (px)
     })
 
-    const hasShownID = ref(false)
     const narrativeText = ref('')
-    const showGuardCloseup = ref(false)
     const router = useRouter()
+    const store = useMainStore();
     const brightClipPath = ref('inset(0% 100% 100% 0%)')
+
 
     // 3) 工具函数（封装通用逻辑）==============================
     /**
-     * delay(ms): Promise 版等待工具
-     * 在 async 函数中可 await delay(ms) 来“暂停”本函数，不阻塞其他逻辑
+     * 在 async 函数中可 await delay(ms) 来“暂停”本函数
      */
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
     /**
-     * showNarrative(text, duration)
-     * - 显示叙述文本 text，并在 duration 毫秒后自动清空。
+     * 显示叙述文本 text，并在 duration 毫秒后自动清空。
      */
     async function showNarrative(text, duration) {
         narrativeText.value = text
@@ -124,7 +120,7 @@
         }
     }
 
-    // 新增：生命周期钩子
+    // 生命周期钩子
     onMounted(() => {
         // 图片加载完成后再计算，否则 naturalWidth/Height 可能为0
         imageRef.value.onload = () => {
@@ -142,7 +138,7 @@
         window.removeEventListener('resize', updateImageDimensions)
     })
 
-    // 新增：计算属性，用于动态绑定热区的 style
+    // 计算属性，用于动态绑定热区的 style
     const hotspotStyles = computed(() => {
         const info = imageRenderInfo.value
         if (!info.width) return {} // 防止初始计算未完成时报错
@@ -159,8 +155,10 @@
         }
         return styles
     })
-    // 4) 交互 & 事件处理函数==============================
 
+
+
+    // 4) 交互 & 事件处理函数==============================
     /**
      * 悬停到某个热点：根据热点的几何区域动态设置 clip-path，显露亮层。
      */
@@ -188,60 +186,51 @@
     }
 
     /**
-     * 点击警卫：展示证件的完整流程（使用 async/await 改写，避免多重 setTimeout）
+     * 点击警卫：转入ID check页
      */
     async function clickGuard() {
-        showGuardCloseup.value = true
-        hasShownID.value = true
-
-        await showNarrative('You approach and show him your ID.', 3000)
-        await showNarrative('He nodded in response. "Thank you for your cooperation, Doctor."', 3000)
-        showGuardCloseup.value = false
+        if (store.hasShownID) {
+            // 如果已经验证过，给出提示
+            const dialogue = `Your identity has been confirmed, Dr.${store.researcherName || '[REDACTED]'}.`;
+            await showNarrative(dialogue, 2000);
+            return  
+        } else {
+            router.push('/security')
+        }
     }
 
     /**
      * 点击咖啡机：
      * - 若已出示 ID：提示后进入点单页
-     * - 若未出示 ID：触发“请出示证件 → 确认 → 关闭特写”的完整流程，再进入点单页
+     * - 若未出示 ID：触发“请出示证件”，进入ID check页
      */
     async function clickMachine() {
         //已出示 ID 的场景
-        if (hasShownID.value) {
-            router.push('/order') 
-            return
+        if (store.hasShownID) {
+            return router.push('/order') 
         } 
         //未出示 ID 的场景
-        showGuardCloseup.value = true
-        await showNarrative('ID card, please.', 1000)
-        await showNarrative('You show him your card, and he nodded in response. "Thank you for your cooperation, Doctor."', 4000);
-        hasShownID.value = true;
-        showGuardCloseup.value = false
-        // 之后进入点单页
-        router.push('/order')
-        
+        return router.push('/security')
     }
 
     /**
      * 点击离开休息室
      */
     async function clickLeave() {
-        await showNarrative('You leave the breakroom', 1500)
-        console.log('leave')
+        return router.push('/')
     }
 </script>
 
 <style scoped>
-    /* --- 主容器样式 --- */
     .break-room-viewport {
         width: 100vw;
         height: 100vh;
         display: flex;
-        align-items: center;     /* 垂直居中 */
-        justify-content: center; /* 水平居中 (如果图片宽度小于窗口) */
-        background-color: #000;  /* 图片未填满时的背景色 */     
+        align-items: center;
+        justify-content: center;
+        background-color: #000;    
     }
 
-    /* 新增：图片容器，热区的定位基准 */
     .image-container {
         position: relative; /* 让容器尺寸等于视口，为 object-fit 提供基准 */
         width: 100vw;
@@ -257,14 +246,12 @@
         left: 0;
         width: 100%;
         height: 100%;
-        /* 核心修改：让图片保持比例完整显示 */
         object-fit: contain; 
     }
 
 
     /* --- 热区和高亮的新样式 --- */
-
-    /* 新增：亮色图层的样式 */
+    /* 亮色图层的样式 */
     .highlight-image-overlay {
         pointer-events: none;
         transition: clip-path 0.2s ease-in-out;
@@ -318,26 +305,10 @@
         box-sizing: border-box; /* 让padding不影响宽度 */
         z-index: 20;
     }
+
     .narrative-box p {
         margin: 0;
         font-size: 1.2em;
     }
 
-    .guard-closeup-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-    .guard-closeup-overlay img {
-        max-width: 60%;
-        max-height: 80%;
-        border: 2px solid #555;
-    }
 </style>

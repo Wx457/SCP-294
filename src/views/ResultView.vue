@@ -10,7 +10,7 @@
     </div>
 
     <div v-if="showDocument" class="document-overlay">
-      <pre class="document-content">{{ resultStore.resultDocument }}</pre>
+      <pre class="document-content">{{ store.resultDocument }}</pre>
     </div>
   </div>
 
@@ -19,10 +19,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useResultStore } from '@/stores/resultStore'
+import { useMainStore } from '@/stores/mainStore'
 import { useRouter } from 'vue-router';
 
-// --- 导入你的动画帧图片 ---
+// --- Animation IMGs ---
 import frame1 from '@/assets/result00.png'
 import frame2 from '@/assets/result01.png'
 import frame3 from '@/assets/result02ice.png'
@@ -30,20 +30,19 @@ import frame4 from '@/assets/result02hot.png'
 import frame5 from '@/assets/result03.png'
 
 const router = useRouter();
-const resultStore = useResultStore()
+const store = useMainStore()
 
-// 动画帧数组
 const animationFrames = [frame1, frame2, frame3, frame4, frame5]
 const frameInterval = 500 // 每帧之间的间隔时间 (毫秒)
 
-// --- 状态管理 ---
-const currentFrame = ref(animationFrames[0]) // 当前显示的图片
-const isAnimationComplete = ref(false)     // 动画是否播放完毕
-const showDocument = ref(false)              // 是否显示文档
+// --- Status ---
+const currentFrame = ref(animationFrames[0])
+const isAnimationComplete = ref(false)
+const showDocument = ref(false)
 
-// --- 动画逻辑 ---
-// 当组件加载后，开始播放动画序列
+// --- Animation logic ---
 onMounted(() => {
+  store.setCoinInserted(false)
   playAnimation();
 })
 
@@ -57,16 +56,14 @@ function playAnimation() {
       currentFrame.value = animationFrames[frameIndex];
       setTimeout(nextFrame, frameInterval);
     } else {
-      // 动画播放完毕
       isAnimationComplete.value = true;
     }
   };
 
-  // 启动第一帧之后的动画
   setTimeout(nextFrame, frameInterval);
 }
 
-// 点击杯子后显示文档
+// Click cup to display the document
 function revealDocument() {
   if (isAnimationComplete.value) {
     showDocument.value = true;
@@ -96,20 +93,20 @@ function clickLeave() {
 .dispense-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* 保证图片比例正确，完整显示 */
+  object-fit: contain;
   transition: filter 0.3s;
 }
 
 .dispense-image.clickable {
   cursor: pointer;
-  filter: brightness(1.1); /* 动画结束后给一个可点击的亮度提示 */
+  filter: brightness(1.1);
 }
 .dispense-image.clickable:hover {
   filter: brightness(1.3);
 }
 
 
-/* 文档覆盖层 */
+/* Document overlay */
 .document-overlay {
   position: absolute;
   top: 0;
@@ -127,7 +124,7 @@ function clickLeave() {
   color: #eee;
   font-family: 'Courier New', Courier, monospace;
   font-size: 1em;
-  white-space: pre-wrap; /* 保证文档内的换行和空格被正确显示 */
+  white-space: pre-wrap;
   max-width: 800px;
   max-height: 80vh;
   overflow-y: auto;
@@ -146,7 +143,7 @@ function clickLeave() {
     border: 1px solid #888;
     cursor: pointer;
     transition: all 0.3s;
-    z-index: 10; /* 最高的z-index，确保在所有其他图层之上 */
+    z-index: 10;
 }
 .leave-button:hover {
     background-color: #fff;

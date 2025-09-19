@@ -16,6 +16,11 @@ const router = createRouter({
       component: () => import('../views/BreakRoomView.vue')
     },
     {
+      path: '/security',
+      name: 'SecurityCheck',
+      component: ()=> import('../views/SecurityCheckView.vue')
+    },
+    {
       path: '/records', // 实验记录文档列表
       name: 'RecordsList',
       component: () => import('../views/RecordsListView.vue')

@@ -2,11 +2,11 @@
   <div class="order-viewport">
     <div class="image-container" :class="zoomClass" ref="imageContainerRef">
       
-      <img :src="orderBgDark" alt="咖啡机特写-暗" class="background-image" />
+      <img :src="orderBgDark" alt="DarkBGI" class="background-image" />
 
       <img 
         :src="currentBrightBg" 
-        alt="咖啡机特写-亮" 
+        alt="BrightBGI" 
         class="background-image" 
         :style="{ clipPath: brightClipPath }"
       />
@@ -45,8 +45,9 @@
 
 <script setup>
   import { ref, computed, onMounted, onUnmounted  } from 'vue'
+  import { storeToRefs } from 'pinia'
   import { useRouter } from 'vue-router'
-  import { useResultStore } from '@/stores/resultStore'
+  import { useMainStore } from '../stores/mainStore'
   import orderBgDark from '../assets/OrderBgDark.png'
   import orderBgBright from '../assets/OrderBgBright.png'
   import orderBgCoin from '../assets/OrderScreen1.png'
@@ -54,28 +55,26 @@
   const router = useRouter()
   const narrativeText = ref('')
   const hoveredHotspot = ref(null);
-  const coinInserted = ref(false)
+  
   const imageContainerRef = ref(null);
   const userInput = ref('')
-  const resultStore = useResultStore() // 2. 获取 store 实例
+  const store = useMainStore()
+  const { hasInsertedCoin } = storeToRefs(store)
 
   // const brightClipPath = ref('inset(0% 100% 100% 0%)')
   const brightClipPath = computed(() => {
     const currentZoom = zoomTarget.value;
     const currentHover = hoveredHotspot.value;
-
-    // 决定当前应该高亮哪个目标
     const activeTarget = currentZoom || currentHover;
 
-    // 如果没有任何目标 (既没放大也没悬停)，则完全不显示高亮
     if (!activeTarget || !hotspots[activeTarget]) {
-      return 'inset(0% 100% 100% 0%)'; // 完全裁剪
+      return 'inset(0% 100% 100% 0%)'; // hide hotspot
     }
 
-    // 根据当前的目标 (无论是放大还是悬停)，获取其几何信息
+    // Get area size
     const h = hotspots[activeTarget];
     
-    // 动态计算出对应这个热区的 inset() 值
+    // Calculate inset() value
     const top = h.top;
     const right = `calc(100% - ${h.left} - ${h.width})`;
     const bottom = `calc(100% - ${h.top} - ${h.height})`;
@@ -84,7 +83,6 @@
     return `inset(${top} ${right} ${bottom} ${left})`;
   });
 
-  //追踪当前的放大目标 ↓↓↓
   const zoomTarget = ref(null)
 
   const hotspots = {
@@ -93,15 +91,13 @@
     dispenser: { top: '55%', left: '15%', width: '30%', height: '35%' }, 
   }
   const zoomClass = computed(() => {
-    if (!zoomTarget.value) return '' // 如果没有放大目标，则不添加任何类
-    // 否则，返回一个类似 'is-zoomed-on-coinslot' 的类名
+    if (!zoomTarget.value) return '' // If no target is zoomed in, no class is added.
     return `is-zoomed-on-${zoomTarget.value}` 
   })
 
-  // --- 核心功能函数 ---
-
+  // --- Core functions ---
   /**
-   * 一个用于显示叙事文本，并在指定时间后自动清除的函数
+   * Show text function
    */
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
   async function showNarrative(text, duration) {
@@ -111,121 +107,105 @@
   }
 
   /**
-   * 悬停到某个热点：根据热点的几何区域动态设置 clip-path，显露亮层。
+   * Hover: show hotspot
    */
   function onHotspotHover(hotspotName) {
     hoveredHotspot.value = hotspotName;
   }
 
   /**
-   * 悬停离开热点：重置为默认的“全部裁切”（不显示亮层）
+   * Hover off: hotspot off
    */
   function onHotspotLeave() {
     hoveredHotspot.value = null;
   }
 
   /**
-   * 点击投币区域的事件处理
+   * Click coinslot
    */
   const currentBrightBg = computed(() => {
-    return coinInserted.value ? orderBgCoin : orderBgBright;
+    return hasInsertedCoin.value ? orderBgCoin : orderBgBright;
   });
-  /**
-   * 点击投币区域的事件处理
-   */
   function clickCoinSlot() {
-    // 如果是首次投币
-    if (!coinInserted.value) {
-      coinInserted.value = true;
-      
-      // 1. 开始放大到投币口 (这将自动触发 brightClipPath 只高亮投币区)
+    // insert coin for the first time
+    if (!hasInsertedCoin.value) {
+      store.setCoinInserted(true);
       zoomTarget.value = 'coinslot';
 
-      // 2. 监听第一次放大动画的结束
       if (imageContainerRef.value) {
         imageContainerRef.value.addEventListener('transitionend', () => {
-          // 3. 动画结束后，显示提示文字，持续3秒
-          showNarrative('你投入了一枚50美分硬币', 3000);
+          showNarrative('You inserted a 50-cent coin.', 2000);
           
-          // 4. 设置一个3秒的延时，在文字消失的同时，开始移动到键盘
           setTimeout(() => {
-            zoomTarget.value = 'keypad'; // 改变状态，触发到键盘的平移动画 (同时自动切换高亮)
+            zoomTarget.value = 'keypad'; // Zoom to keypad
           }, 3000);
 
         }, { once: true });
       }
     } else {
-      // 如果已经投过币了（无论当前在看哪里），再点投币口
-      // 1. 镜头移回投币口
+      // If inserted coin before
+      //Zoom to coinslot and show text
       zoomTarget.value = 'coinslot';
-      // 2. 显示提示文字
-      showNarrative('SCP-294接受且只接受一枚50美分硬币', 3000);
+      showNarrative('SCP-294 receive only one 50-cent coin for one time', 2000);
 
       setTimeout(() => {
-        zoomTarget.value = 'keypad'; // 改变状态，触发到键盘的平移动画 (同时自动切换高亮)
-      }, 3000);
+        zoomTarget.value = 'keypad'; // Zoom back to keypad
+      }, 2000);
     }
   }
 
   /**
-   * 点击键盘/屏幕区域的事件处理
+   * click Keypad
    */
   function clickKeypad() {
-    if (coinInserted.value) {
-      // 投币后才能交互，未来会弹出键盘输入界面
-      showNarrative('放大并可输入指令');
-      // 这里将是导航到键盘输入组件的逻辑
+    if (!hasInsertedCoin.value) {
+      showNarrative('Please insert coins first.', 2000);
     } else {
-      // 投币前点击无效
-      showNarrative('请先投币。', 2000);
+      zoomTarget.value = 'keypad'
     }
   }
 
   /**
-   * 点击离开按钮
+   * click Leave Button
    */
   function clickLeave() {
-    // 如果当前是放大状态，则第一次点击“Back”按钮时先缩小
+    // If the current state is zoomed in, click the "Back" button will zoom out
     if (zoomTarget.value) {
-      zoomTarget.value = null; // 设置放大目标为null，触发缩小动画
+      zoomTarget.value = null;
     } else {
-      // 如果已经是缩小状态，则第二次点击时才真正返回上一页
       router.go(-1)
     }
   }
 
-  const MAX_CHARS = 50; // 设置最大字符数
+  const MAX_CHARS = 50;
   /**
-   * 处理键盘按键的核心函数
-   * @param {KeyboardEvent} event 浏览器传递的键盘事件对象
+   * Key Press Input
+   * @param {KeyboardEvent} event pass keyboard input to browser
    */
   function handleKeyPress(event) {
-    // 只有在放大到键盘区域时才响应输入
+    // Respond to input only when zoomed into the keyboard area
     if (zoomTarget.value !== 'keypad') {
       return;
     }
 
-    // 阻止某些按键的默认浏览器行为，例如按空格滚动页面
+    // Prevent spacebar to scroll the page
     if (event.key === ' ') {
       event.preventDefault();
     }
 
-    // 处理“退格键”
     if (event.key === 'Backspace') {
       userInput.value = userInput.value.slice(0, -1);
       return;
     }
 
-    // 处理“回车键”
     if (event.key === 'Enter') {
-      // 触发提交逻辑
       submitRequest();
       return;
     }
 
-    // 只处理单个字符的输入 (过滤掉 Shift, Ctrl, F5 等功能键)
+    // Filter out function keys such as Shift, Ctrl, F5, etc.
     if (event.key.length === 1) {
-      // 检查是否达到最大字符数
+      // maximum number of characters
       if (userInput.value.length < MAX_CHARS) {
         userInput.value += event.key;
       }
@@ -238,11 +218,11 @@
   async function submitRequest() {
     const currentInput = userInput.value.trim();
     if (currentInput.length === 0) {
-      showNarrative('请输入有效指令。', 3000);
+      showNarrative('请输入有效指令。', 2000);
       return;
     }
-    //TODO: 屏幕显示‘Order Received!’，然后开始转圈
-    showNarrative('请求已发送: "${currentInput}"', 3000);
+
+    showNarrative(`Preparing a cup of "${currentInput}"...`, 3000);
     
     try {
       const response = await fetch('/api/getCup', {
@@ -272,7 +252,7 @@
       // 如果成功，则继续
       const data = await response.json();
       console.log('从后端收到的AI回复:', data.description);
-      resultStore.setResult(data.description);
+      store.setResult(data.description);
       zoomTarget.value = 'dispenser';
       if (imageContainerRef.value) {
         imageContainerRef.value.addEventListener('transitionend', () => {
@@ -286,8 +266,7 @@
     }
   }
 
-  // --- 【新增】Vue生命周期钩子 ---
-
+  // --- Vue生命周期钩子 ---
   // onMounted: 当组件被加载到页面上后执行
   onMounted(() => {
     // 开始监听全局的键盘按下事件
@@ -332,7 +311,7 @@
   }
 
   /* 亮色图层需要绝对定位，完美覆盖在暗色图层之上 */
-  .background-image[alt*="亮"] {
+  .background-image[alt*="BrightBGI"] {
     position: absolute;
     top: 0;
     left: 0;
@@ -452,12 +431,7 @@
     font-size: 0.6em;
     font-weight: 900;
     font-family: 'Courier New', monospace;
-  }
-
-  /* .preview {
-    white-space: pre-wrap; \n -> 换行，保留连续空格
-    word-break: break-word; /* 超长英文/URL 也能断行 */
-  /* } */ 
+  } 
 
   .cursor {
     animation: blink 1s step-end infinite;
