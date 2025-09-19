@@ -1,35 +1,29 @@
-# scp-294
+# SCP-294: A.I. Powered Interactive Coffee Machine
 
-This template should help get you started developing with Vue 3 in Vite.
+A full-stack interactive narrative project based on the SCP Foundation's SCP-294. The core feature of this project is to leverage generative AI to dynamically produce in-universe experiment documentation based on user input.
 
-## Recommended IDE Setup
+---
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+### ✨ Key Features
 
-## Customize configuration
+* **Interactive Narrative Flow**: Players assume the role of a researcher, interacting with SCP-294 through a guided narrative, creating a unique "experiment" each time.
+* **A.I. Semantic Interpretation**: The backend utilizes advanced **Prompt Engineering** with the **Google Gemini API** to interpret abstract user requests and generate detailed, lore-friendly experiment logs.
+* **Session-level State Management**: Global game variables like the researcher's name and ID verification status are maintained across different pages using **Pinia** for a seamless user experience.
+* **Data Persistence**: All experiment results are stored in a **MongoDB Atlas** cloud database, accessible from a dedicated "Records" page.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 💻 Tech Stack
 
-## Project Setup
+* **Frontend**: **Vue 3** (Composition API), **Vue Router** (for navigation), **Pinia** (for global state management), **HTML/CSS** (for UI design).
+* **Backend**: **Node.js** & **Vercel Serverless Functions** (for a lightweight, secure backend), **MongoDB** (for data storage), **Google Gemini API** (for AI content generation).
 
-```sh
-npm install
-```
+---
 
-### Compile and Hot-Reload for Development
+### 🚀 How to Run
 
-```sh
-npm run dev
-```
+**Live Demo**
 
-### Compile and Minify for Production
+[Click here to experience the project](https://scp-294-g8vw5dcsx-leavys-projects-e328e1bd.vercel.app)
 
-```sh
-npm run build
-```
+**Local Development**
 
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+Clone the repository: `git clone https://github.com/Wx457/SCP-294`
