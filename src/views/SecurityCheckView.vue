@@ -1,7 +1,7 @@
 <template>
   <div class="security-container">
     <div class="stage">
-      <!-- GUARD：加可切换的平移类 -->
+      <!-- GUARD IMG -->
       <img
         class="guard"
         :class="{ shiftLeft: guardShift }"
@@ -9,12 +9,12 @@
         alt="GUARD IMG"
       />
 
-      <!-- 叙述框 -->
+      <!-- narrativeText -->
       <div v-if="narrativeText" class="narrative-box">
         <p class="dialogue">{{ narrativeText }}</p>
       </div>
 
-      <!-- ID卡：从右侧滑入 + 姓名栏锚点 -->
+      <!-- ID card & input text -->
       <div
         v-if="showIDCard"
         class="id-card-frame"
@@ -51,8 +51,8 @@ const nameInput = ref('')
 const narrativeText = ref('')
 const showNameInput = ref(false)
 const showIDCard = ref(false)
-const idCardSlideIn = ref(false)  // 控制ID卡滑入
-const guardShift = ref(false)     // 控制GUARD左移
+const idCardSlideIn = ref(false)
+const guardShift = ref(false)
 
 const delay = (ms) => new Promise(r => setTimeout(r, ms))
 async function showNarrative(text, duration) {
@@ -62,20 +62,14 @@ async function showNarrative(text, duration) {
 }
 
 onMounted(async () => {
-  // 1) 先播台词
   await showNarrative('ID card, please.', 2000)
-
-  // 2) GUARD 左移为 ID 卡让位置
   guardShift.value = true
-  await delay(600) // 留点时间完成平移动画
-
-  // 3) 右侧显示 ID 卡，并做滑入动画
+  await delay(600)
   showIDCard.value = true
   await nextTick()
   idCardSlideIn.value = true
-  await delay(500) // 等滑入稳定
+  await delay(500)
 
-  // 4) 最后再显示输入框
   showNameInput.value = true
 })
 
@@ -85,7 +79,6 @@ async function saveNameAndProceed() {
   }
   store.setIDShown(true)
 
-  // 临时隐藏输入框，播一句感谢
   showNameInput.value = false
   const dialogue = `Thank you for your cooperation, Doctor.${nameInput.value || '[REDACTED]'}.`
   await showNarrative(dialogue, 2000)
@@ -99,7 +92,7 @@ function clickLeave() {
 </script>
 
 <style scoped>
-/* 布局：中间一块“舞台”，左侧GUARD，右侧ID卡 */
+
 .security-container {
   display: flex;
   flex-direction: column;
@@ -117,24 +110,22 @@ function clickLeave() {
   margin-top: 2vh;
 }
 
-/* GUARD：初始居中偏左；添加平移动画 */
+
 .guard {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%);   /* 初始居中 */
+  transform: translateX(-50%);
   height: 100%;
   object-fit: cover;
-  transition: transform .6s ease; /* 平移动画 */
+  transition: transform .6s ease;
   z-index: 5;
 }
 
-/* 平移后往左挪一点（你可以改为 -28vw 或 -22vw 之类微调） */
 .guard.shiftLeft {
-  transform: translateX(-98%); /* 从居中(-50%)再多左 18% */
+  transform: translateX(-98%);
 }
 
-/* 叙事文本框 */
 .narrative-box {
   position: fixed;
   bottom: 50px;
@@ -149,13 +140,12 @@ function clickLeave() {
 }
 .narrative-box .dialogue { margin: 0; font-family: monospace; color: #fff;}
 
-/* ID卡：放在舞台右侧，初始在右外侧，slideIn 后进入 */
 .id-card-frame {
   position: absolute;
   right: 0;
   bottom: 6%;
   width: min(520px, 45vw);
-  transform: translateX(120%);  /* 初始在右侧看不见 */
+  transform: translateX(120%);
   opacity: 0;
   transition: transform .5s ease, opacity .5s ease;
   z-index: 10;
@@ -172,7 +162,6 @@ function clickLeave() {
   border-radius: 10px;
 }
 
-/* 姓名栏锚点 */
 .name-slot {
   position: absolute;
   top: 40%;
@@ -182,13 +171,13 @@ function clickLeave() {
 
   display: flex;
   align-items: center;
-  pointer-events: none; /* 自己不吃事件 */
+  pointer-events: none;
 }
 
-/* 输入框填满姓名栏区域 */
+
 .name-input-inline {
   width: 100%;
-  pointer-events: auto; /* 恢复子元素交互 */
+  pointer-events: auto;
 }
 
 .name-input-inline input {
@@ -204,7 +193,6 @@ function clickLeave() {
   outline: none;
 }
 
-/* 返回按钮 */
 .leave-button {
   position: absolute;
   top: 20px;

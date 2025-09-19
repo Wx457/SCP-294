@@ -14,9 +14,6 @@
       <div v-if="zoomTarget === 'keypad'" class="input-display">
         <div class="prompt">Press 'Enter' to submit:</div>
         <textarea v-model="userInput" class="ta" placeholder="A cup of…"></textarea>
-        <!-- <p class="preview">
-          {{ userInput }}
-        </p> -->
       </div>
 
       <div 
@@ -274,7 +271,6 @@
 </script>
 
 <style scoped>
-  /* --- 主容器：负责全屏和居中 --- */
   .order-viewport {
     width: 100vw;
     height: 100vh;
@@ -282,45 +278,39 @@
     align-items: center;
     justify-content: center;
     background-color: #000;
-    overflow: hidden; /* 防止图片过宽时出现滚动条 */
+    overflow: hidden;
   }
 
-  /* --- 图片容器：热区的定位基准 --- */
   .image-container {
     position: relative;
-    /* 它的尺寸由内部的 img 决定 */
     width: auto;
     height: 100vh;
     line-height: 0;
-    /* ↓↓↓ 新增这行，让 transform 属性的变化产生0.8秒的平滑动画 ↓↓↓ */
     transition: transform 0.8s ease-in-out;
   }
 
-  /* --- 背景图片样式 (亮/暗) --- */
+  /* --- BGIs --- */
   .background-image {
-    height: 100%; /* 关键：让图片高度填满容器(即100vh) */
-    width: auto;  /* 关键：宽度根据高度自动缩放，保持比例 */
-    max-width: none; /* 覆盖可能存在的全局 max-width: 100% 样式 */
+    height: 100%;
+    width: auto;
+    max-width: none;
   }
 
-  /* 亮色图层需要绝对定位，完美覆盖在暗色图层之上 */
   .background-image[alt*="BrightBGI"] {
     position: absolute;
     top: 0;
     left: 0;
-    pointer-events: none; /* 让鼠标可以穿透它 */
+    pointer-events: none;
     transition: clip-path 0.2s ease-in-out;
   }
 
 
-  /* --- 热区通用样式 --- */
+  /* --- Hotspots --- */
   .hotspot {
     position: absolute;
     cursor: pointer;
-    /* border: 2px dashed cyan; */ /* 需要调试时取消注释这行 */
   }
 
-  /* --- 热区具体位置 --- */
   .hotspot-keypad {
     top: 3%;
     left: 12%;
@@ -336,13 +326,13 @@
   }
 
 
-  /* --- UI元素样式 --- */
+  /* --- UI --- */
   .narrative-box {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 20vh; /* 高度为视口高度的20% */
+    height: 20vh;
     padding: 0 50px;
     box-sizing: border-box;
     background-color: rgba(0, 0, 0, 0.85);
@@ -351,7 +341,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    z-index: 20; /* 确保在图片图层之上 */
+    z-index: 20;
   }
   .narrative-box p {
     margin: 0;
@@ -369,14 +359,13 @@
     border: 1px solid #888;
     cursor: pointer;
     transition: all 0.3s;
-    z-index: 10; /* 最高的z-index，确保在所有其他图层之上 */
+    z-index: 10;
   }
   .leave-button:hover {
     background-color: #fff;
     color: #000;
   }
 
-  /* --- 【新增】输入显示框 和 闪烁光标的样式 --- */
   .input-display {
     position: absolute;
     top: 8%;
@@ -396,7 +385,7 @@
   }
 
   .prompt {
-    font-size: 0.6em; /* 字号也小一点 */
+    font-size: 0.6em;
     margin-bottom: 2em;
   }
   .ta {
@@ -412,8 +401,8 @@
     font-weight: 900;
     font-family: 'Courier New', monospace;
 
-    white-space: pre-wrap; /* \n -> 换行，保留连续空格 */
-    word-break: break-word; /* 超长英文/URL 也能断行 */
+    white-space: pre-wrap;
+    word-break: break-word;
 
     background-color: transparent;
     border-radius: 6px;
@@ -435,28 +424,15 @@
     50% { opacity: 0; }
   }
 
-  /* --- 【新增】放大动画的最终状态 --- */
+  /* --- Zoom Targets --- */
   .image-container.is-zoomed-on-coinslot {
-    /* scale(2.5) 表示将图片放大到2.5倍。
-      translate(...) 表示移动图片，将你想要看清的区域移动到画面中心。
-      负的X值表示向左移动图片（以显示右边的内容）。
-      负的Y值表示向上移动图片（以显示下方的内容）。
-    */
     transform: scale(3.5) translate(-35%, 15%);
   }
 
-  /* --- 【新增】放大到键盘的动画状态 --- */
   .image-container.is-zoomed-on-keypad {
-    /* 根据你的 keypad 热区数据估算：
-      - scale(1.5): 键盘区宽度较大(65%)，所以放大倍数较小
-      - translate(6%, 20%): 
-        - X轴(左右): 键盘区偏左(left:12%)，所以我们需要向右平移(正值)来让它居中
-        - Y轴(上下): 键盘区非常靠上(top:3%)，所以我们需要向下平移(正值)很多来让它居中
-    */
     transform: scale(1.8) translate(6%, 20%);
   }
 
-  /* --- 【新增】放大到出杯口的动画状态 --- */
   .image-container.is-zoomed-on-dispenser {
     transform: scale(3) translate(20%, -30%);
   }

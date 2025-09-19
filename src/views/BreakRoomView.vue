@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-    // 1) 资源导入==============================
+
     import { ref, onMounted, onUnmounted, computed } from 'vue'
     import { useRouter } from 'vue-router'
     import { useMainStore } from '@/stores/mainStore';
@@ -46,21 +46,20 @@
     import darkBg from '../assets/BGI.png'
     import brightBg from '../assets/BGI_bright.png'
 
-    // 划定热点对象Hotspots-size & location
+    // --- Hotspots-size & location ---
     const hotspots = {
         guard: { top: '5%', left: '65%', width: '25%', height: '90%' },
         machine: { top: '5%', left: '33%', width: '33%', height: '95%' },
     }
 
-    // 2) 组件状态（响应式 ref）==============================
+    // --- Responsive refs ---
 
-    // 新增 ref 用于获取图片 DOM 和存储计算结果
-    const imageRef = ref(null) // 对应 template 中的 ref="imageRef"
+    const imageRef = ref(null)
     const imageRenderInfo = ref({
-        width: 0,  // 图片渲染后的实际宽度 (px)
-        height: 0, // 图片渲染后的实际高度 (px)
-        offsetX: 0, // 图片距离容器左边的偏移 (px)
-        offsetY: 0, // 图片距离容器顶部的偏移 (px)
+        width: 0,
+        height: 0,
+        offsetX: 0,
+        offsetY: 0,
     })
 
     const narrativeText = ref('')
@@ -69,15 +68,11 @@
     const brightClipPath = ref('inset(0% 100% 100% 0%)')
 
 
-    // 3) 工具函数（封装通用逻辑）==============================
+    // --- Utils ---
     /**
-     * 在 async 函数中可 await delay(ms) 来“暂停”本函数
+     * Show narrative text
      */
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-
-    /**
-     * 显示叙述文本 text，并在 duration 毫秒后自动清空。
-     */
     async function showNarrative(text, duration) {
         narrativeText.value = text
         await delay(duration)
@@ -120,7 +115,7 @@
         }
     }
 
-    // 生命周期钩子
+    // life cycle hooks
     onMounted(() => {
         // 图片加载完成后再计算，否则 naturalWidth/Height 可能为0
         imageRef.value.onload = () => {
@@ -138,10 +133,10 @@
         window.removeEventListener('resize', updateImageDimensions)
     })
 
-    // 计算属性，用于动态绑定热区的 style
+    // Computed properties
     const hotspotStyles = computed(() => {
         const info = imageRenderInfo.value
-        if (!info.width) return {} // 防止初始计算未完成时报错
+        if (!info.width) return {}
 
         const styles = {}
         for (const name in hotspots) {
@@ -158,9 +153,9 @@
 
 
 
-    // 4) 交互 & 事件处理函数==============================
+    // --- Interaction & Event Handlers ---
     /**
-     * 悬停到某个热点：根据热点的几何区域动态设置 clip-path，显露亮层。
+     * Hover: set clip-path to show hotspot
      */
     function onHotspotHover(hotspotName) {
         const h = hotspots[hotspotName];
@@ -179,18 +174,17 @@
     }
 
     /**
-     * 悬停离开热点：重置为默认的“全部裁切”（不显示亮层）
+     * Hover off: hotspot off
      */
     function onHotspotLeave() {
         brightClipPath.value = 'inset(0% 100% 100% 0%)';
     }
 
     /**
-     * 点击警卫：转入ID check页
+     * Click Guard
      */
     async function clickGuard() {
         if (store.hasShownID) {
-            // 如果已经验证过，给出提示
             const dialogue = `Your identity has been confirmed, Dr.${store.researcherName || '[REDACTED]'}.`;
             await showNarrative(dialogue, 2000);
             return  
@@ -200,21 +194,19 @@
     }
 
     /**
-     * 点击咖啡机：
-     * - 若已出示 ID：提示后进入点单页
-     * - 若未出示 ID：触发“请出示证件”，进入ID check页
+     * Click Coffee Machine
+     * - Has shown ID -> order view
+     * - Has not shown ID -> security view
      */
     async function clickMachine() {
-        //已出示 ID 的场景
         if (store.hasShownID) {
             return router.push('/order') 
         } 
-        //未出示 ID 的场景
         return router.push('/security')
     }
 
     /**
-     * 点击离开休息室
+     * Leave Breakroom -> start view
      */
     async function clickLeave() {
         return router.push('/')
@@ -232,16 +224,15 @@
     }
 
     .image-container {
-        position: relative; /* 让容器尺寸等于视口，为 object-fit 提供基准 */
+        position: relative;
         width: 100vw;
         height: 100vh;
         line-height: 0;
         overflow: hidden;
     }
 
-    /* 新增：真实的图片样式 */
     .background-image, .highlight-image-overlay {
-        position: absolute; /* 让两张图完全重叠 */
+        position: absolute;
         top: 0;
         left: 0;
         width: 100%;
@@ -250,30 +241,24 @@
     }
 
 
-    /* --- 热区和高亮的新样式 --- */
-    /* 亮色图层的样式 */
     .highlight-image-overlay {
         pointer-events: none;
         transition: clip-path 0.2s ease-in-out;
     }
 
-    /* 热区 */
     .hotspot {
         position: absolute;
         cursor: pointer;
     }
 
-    /* 当鼠标悬停在热区上时，让内部的高亮背景显示出来 */
     .hotspot:hover > .highlight-image {
         opacity: 1;
     }
 
     .hotspot:hover {
-    transform: scale(1.02); /* 悬停时轻微放大 */
+    transform: scale(1.02);
     }
 
-
-    /* --- 其他UI元素样式 --- */
     .leave-button {
         position: absolute;
         bottom: 40px;
@@ -302,7 +287,7 @@
         background-color: rgba(0, 0, 0, 0.85);
         color: #fff;
         text-align: center;
-        box-sizing: border-box; /* 让padding不影响宽度 */
+        box-sizing: border-box;
         z-index: 20;
     }
 

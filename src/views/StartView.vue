@@ -19,12 +19,10 @@
     const router = useRouter();
 
     function goToRecords() {
-        // 当点击“实验记录”按钮时，跳转到记录列表页面
         router.push('/records');
     }
 
     function goToExperiment() {
-        // 当点击“进行实验”按钮时，跳转到咖啡机页面
         router.push('/breakRoom');
     }
 </script>
@@ -37,9 +35,9 @@ h1 {
 .start-container {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* 垂直居中所有内容 */
-    align-items: center;    /* 水平居中所有内容 */
-    min-height: 100vh;      /* 确保容器占满整个视口高度 */
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     background-color: #000;
     color: bisque;
     text-align: center;
@@ -54,23 +52,23 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px; /* 图片之间的间距 */
+    gap: 10px;
     margin-bottom: 3rem;
 }
 
 .centered-image1 {
   width: 50%;
   height: auto;
-  display: block; /* 确保图片独占一行 */
+  display: block;
   margin: 0 auto;
 }
 
 .button-section {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* 按钮之间的间距 */
+    gap: 15px;
     width: 100%;
-    max-width: 300px; /* 限制按钮容器的最大宽度 */
+    max-width: 300px;
     font-family: 'Courier New', Courier, monospace;
 }
 

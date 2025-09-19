@@ -39,9 +39,9 @@ onMounted(async () => {
 
 function toggleDetails(id) {
   if (expandedRecordId.value === id) {
-    expandedRecordId.value = null; // 折叠
+    expandedRecordId.value = null;
   } else {
-    expandedRecordId.value = id; // 展开
+    expandedRecordId.value = id;
   }
 }
 
@@ -51,7 +51,6 @@ function extractYMDFromDoc(text = '') {
 }
 
 function displayDate(rec) {
-  // 优先新字段；否则用 ISO/Mongo 字符串的前 10 位；最后从文档头抠
   if (typeof rec.timestamp_ymd === 'string' && rec.timestamp_ymd) return rec.timestamp_ymd
   if (typeof rec.timestamp_iso === 'string' && rec.timestamp_iso) return rec.timestamp_iso.slice(0, 10)
   if (typeof rec.timestamp === 'string' && rec.timestamp)         return rec.timestamp.slice(0, 10)
@@ -122,7 +121,7 @@ h2{
     border: 1px solid #888;
     cursor: pointer;
     transition: all 0.3s;
-    z-index: 10; /* 最高的z-index，确保在所有其他图层之上 */
+    z-index: 10;
   }
   .leave-button:hover {
     background-color: #fff;

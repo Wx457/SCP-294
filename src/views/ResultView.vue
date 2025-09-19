@@ -3,7 +3,7 @@
     <div class="animation-container" @click="revealDocument">
       <img 
         :src="currentFrame" 
-        alt="出杯动画"
+        alt="MyDrink"
         class="dispense-image"
         :class="{ clickable: isAnimationComplete }"
       />
@@ -33,7 +33,7 @@ const router = useRouter();
 const store = useMainStore()
 
 const animationFrames = [frame1, frame2, frame3, frame4, frame5]
-const frameInterval = 500 // 每帧之间的间隔时间 (毫秒)
+const frameInterval = 500
 
 // --- Status ---
 const currentFrame = ref(animationFrames[0])

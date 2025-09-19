@@ -11,7 +11,7 @@ export const useMainStore = defineStore('main', () => {
   const hasShownID = ref(false);
   const hasInsertedCoin = ref(false)
 
-  // 从 sessionStorage 水合（若不需要刷新保留，可整段删除）
+  // sessionStorage hydrate
   try {
     const saved = sessionStorage.getItem(SESSION_KEY)
     if (saved) {
@@ -51,7 +51,7 @@ export const useMainStore = defineStore('main', () => {
     sessionStorage.removeItem(SESSION_KEY)
   }
 
-  // ✅ 可选：会话级持久化（刷新不丢；关标签页就清）
+  // Session-level persistence
   watch([researcherName, hasShownID, hasInsertedCoin], ([name, idShown, coin]) => {
     const payload = { researcherName: name, hasShownID: idShown, hasInsertedCoin: coin }
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(payload))
