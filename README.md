@@ -23,6 +23,7 @@ A full-stack interactive narrative project based on the SCP Foundation's SCP-294
 **Live Demo**
 
 [Click here to experience the project](https://scp-294-g8vw5dcsx-leavys-projects-e328e1bd.vercel.app)
+![QR code](https://images-fe.ssl-images-amazon.com/images/G/01/B2B_L2_Merchandise_Tiles/172314-b2b-site-img-1-120x240._CB485966348_.jpg
 
 **Local Development**
 
