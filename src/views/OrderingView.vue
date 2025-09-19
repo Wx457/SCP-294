@@ -213,12 +213,12 @@
   }
 
   /**
-   * 提交用户输入的请求
+   * Submit user request
    */
   async function submitRequest() {
     const currentInput = userInput.value.trim();
     if (currentInput.length === 0) {
-      showNarrative('请输入有效指令。', 2000);
+      showNarrative('Please enter a valid command.', 2000);
       return;
     }
 
@@ -233,25 +233,20 @@
         body: JSON.stringify({ prompt: currentInput }), 
       });
 
-      // 如果响应不成功，我们在这里深入挖掘原因
+      // If unsuccessful response
       if (!response.ok) {
-        // 打印出具体的状态码和状态文本
-        console.error("服务器响应错误:", response.status, response.statusText);
-        
-        // 尝试解析后端返回的JSON错误体，里面可能包含有用的信息
+        console.error("Server response error:", response.status, response.statusText);
         const errorData = await response.json().catch(() => {
-          // 如果后端返回的不是JSON，就返回一个空对象
-          return { error: "无法解析服务器的错误响应" };
+          return { error: "Unable to parse error response from server" };
         });
-        console.error("服务器返回的错误详情:", errorData);
+        console.error("Error details returned by the server: ", errorData);
 
-        // 最后再抛出错误，让下面的catch块捕获
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // 如果成功，则继续
+      // unsuccessful response
       const data = await response.json();
-      console.log('从后端收到的AI回复:', data.description);
+      console.log('AI response received from the backend:', data.description);
       store.setResult(data.description);
       zoomTarget.value = 'dispenser';
       if (imageContainerRef.value) {
@@ -261,21 +256,19 @@
       }
 
     } catch (error) {
-      console.error('调用API时出错:', error.message);
-      showNarrative('请求失败，请稍后再试。');
+      console.error('Error when calling API:', error.message);
+      showNarrative('The request failed, please try again later.');
     }
   }
 
-  // --- Vue生命周期钩子 ---
-  // onMounted: 当组件被加载到页面上后执行
+  // --- Vue lifecycle hooks ---
+  // onMounted: executed when the component is loaded onto the page
   onMounted(() => {
-    // 开始监听全局的键盘按下事件
     window.addEventListener('keydown', handleKeyPress);
   });
 
-  // onUnmounted: 当组件被销毁 (用户离开这个页面) 前执行
+  // onUnmounted: executed before the component is destroyed (the user leaves this page)
   onUnmounted(() => {
-    // 停止监听，防止在其他页面也触发这个键盘事件
     window.removeEventListener('keydown', handleKeyPress);
   });
 </script>
